@@ -64,6 +64,9 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg 
+    | timeDurationArg
+    | aggregateStats
   )*?
   ;
 
@@ -115,6 +118,18 @@ identifier
  : Identifier
  ;
 
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
+
+aggregateStats
+ : AggregateStats column column identifier identifier
+ ;
+
 properties
  : 'prop' ':' OBrace (propertyList)+  CBrace
  | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
@@ -128,7 +143,7 @@ propertyList
  ;
 
 property
- : Identifier '=' ( text | number | bool )
+ : Identifier '=' ( text | number | bool | byteSizeArg | timeDurationArg )
  ;
 
 numberRanges
@@ -140,7 +155,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -246,6 +261,13 @@ Pipe     : '|';
 BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
+AggregateStats : 'aggregate-stats';
+
+BYTE_SIZE: Number BYTE_UNIT;
+fragment BYTE_UNIT: [kK][bB]|[mM][bB]|[gG][bB]|[tT][bB]|[pP][bB];
+
+TIME_DURATION: Number TIME_UNIT; 
+fragment TIME_UNIT: [nN][sS]|'μ'?[sS]|[mM][sS]|[sS]|[mM]|[hH]|[dD];
 
 
 Bool
