@@ -1,0 +1,33 @@
+Context: Enhancing a data wrangling library to parse byte sizes (e.g., KB, MB) and time durations (e.g., ms, s) with new grammar rules, token classes, and an aggregate directive.
+
+1. Grammar Modifications (ANTLR4)
+Prompt: "Explain how to define lexer rules in ANTLR4 for custom units like byte sizes (KB, MB) and time durations (ms, s), including case-insensitive matching. What fragments (e.g., BYTE_UNIT, TIME_UNIT) are needed to avoid redundancy?"
+
+Follow-up: "How should parser rules be structured to allow these tokens as arguments in directives, without conflating them with numeric or string literals?"
+
+2. Token Class Design
+Prompt: "What’s a generic design for a Java Token subclass to parse a string like '10KB' into a numeric value with canonical unit conversion (e.g., bytes)? Include validation for invalid units."
+
+Avoided: Sharing actual code or method signatures from the proprietary codebase.
+
+3. Parser Integration
+Prompt: "Describe a strategy to extend a visitor-based parser to handle new token types (e.g., BYTE_SIZE) and add them to a TokenGroup. How should ctx.getText() be processed without exposing internal logic?"
+
+4. Aggregate Directive (Conceptual)
+Prompt: "Outline the steps to implement an aggregate directive that accumulates values from columns (e.g., summing byte sizes). How should ExecutorContext store intermediate totals, and what patterns avoid thread-safety issues?"
+
+Focus: Architecture (e.g., "use a map to track totals per column") over implementation.
+
+5. Testing Approach
+Prompt: "Suggest test cases for a byte size parser, covering valid/invalid inputs (e.g., '2MB', '0.5GB', 'invalid'). How would you assert canonical unit conversion without hardcoding values?"
+
+Example: "Assert that '1KB' converts to 1024 bytes, but omit actual test code."
+
+6. Edge Cases & Validation
+Prompt: "What edge cases should be handled for unit parsing? Examples: empty strings, mixed units (e.g., '1KB 500B'), or overflow. Provide generic error-handling strategies."
+
+7. Build Process
+Prompt: "How do you regenerate ANTLR-generated parser code in a Maven project after modifying grammar files, without sharing internal build scripts?"
+
+8. Documentation
+Prompt: "Draft a user-facing guide for a new aggregate-stats directive, explaining column arguments and unit conversions (e.g., 'total_size_mb'). Omit internal APIs."
