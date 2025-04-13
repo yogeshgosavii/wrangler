@@ -180,6 +180,27 @@ rates below are specified as *records/second*.
 
 ### Mailing Lists
 
+
+##  Enhancement: Byte Size & Time Duration Parsers (Intern Assignment)
+
+This enhancement adds native support to Wrangler for parsing **byte size** values (e.g., `10KB`, `1.5MB`) and **time duration** values (e.g., `500ms`, `2s`). It also introduces a new directive `aggregate-stats` that performs aggregations using these units.
+
+### 🔧 Modules Updated
+
+- `wrangler-api`: Added `ByteSize.java` and `TimeDuration.java` classes
+- `wrangler-core`:
+  - Modified `Directives.g4` to include `BYTE_SIZE` and `TIME_DURATION` tokens
+  - Implemented `AggregateStats` directive
+  - Extended parser and visitor logic
+
+###  New Directive: `aggregate-stats`
+
+A new directive that aggregates byte size and time duration columns across rows.
+
+**Example usage:**
+```wrangler
+aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
 CDAP User Group and Development Discussions:
 
 * [cdap-user@googlegroups.com](https://groups.google.com/d/forum/cdap-user)
