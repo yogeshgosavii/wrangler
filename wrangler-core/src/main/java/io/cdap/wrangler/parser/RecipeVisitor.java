@@ -365,7 +365,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
    * This visitor method extracts the byte size argument token (e.g., "10KB",
    * "2MB").
    * It creates a token of type <code>ByteSize</code> to be added to
-   * <code>TokenGroup</code>.
+   * <code>Token</code>.
    */
   @Override
   public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
@@ -377,7 +377,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
    * This visitor method extracts the time duration argument token (e.g., "150ms",
    * "2.5s").
    * It creates a token of type <code>TimeDuration</code> to be added to
-   * <code>TokenGroup</code>.
+   * <code>Token</code>.
    */
   @Override
   public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {

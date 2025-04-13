@@ -1,7 +1,4 @@
-package io.cdap.wrangler.api.parser;
 
-import org.junit.Assert;
-import org.junit.Test;
 
 /*
  * Copyright 2025 Your Organization.
@@ -18,6 +15,11 @@ import org.junit.Test;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package io.cdap.wrangler.api.parser;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 
 
