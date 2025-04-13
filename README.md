@@ -200,7 +200,7 @@ A new directive that aggregates byte size and time duration columns across rows.
 **Example usage:**
 ```wrangler
 aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
-
+```
 CDAP User Group and Development Discussions:
 
 * [cdap-user@googlegroups.com](https://groups.google.com/d/forum/cdap-user)
