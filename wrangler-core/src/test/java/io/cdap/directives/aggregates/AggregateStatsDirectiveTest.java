@@ -14,7 +14,7 @@
  * the License.
  */
 
-package io.cdap.directives.aggregates;
+ package io.cdap.directives.aggregates;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
@@ -26,20 +26,22 @@ import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.TransientVariableScope;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
+import io.cdap.wrangler.api.parser.Token;
 import io.cdap.wrangler.api.parser.TokenType;
 
 import org.junit.Before;
 import org.junit.Test;
+
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class AggregateStatsDirectiveTest {
     private AggregateStatsDirective directive;
@@ -56,91 +58,121 @@ public class AggregateStatsDirectiveTest {
 
     @Test
     public void testTotalAggregation() throws Exception {
-        Arguments args = mock(Arguments.class);
+        // Use actual token objects
+        Map<String, Object> params = new HashMap<>();
+        params.put("size_column", new ColumnName("size"));
+        params.put("time_column", new ColumnName("duration"));
+        params.put("size_output", new ColumnName("totalSize"));
+        params.put("time_output", new ColumnName("totalTime"));
+        params.put("aggregation", new Text("total"));
 
-        // Create appropriate Token objects
-        ColumnName sizeColumn = new ColumnName("size");
-        ColumnName timeColumn = new ColumnName("duration");
-        ColumnName sizeOutput = new ColumnName("totalSize");
-        ColumnName timeOutput = new ColumnName("totalTime");
-        Text aggregation = new Text("total");
-
-        // Mock args.value() to return the correct Token types
-        when(args.value("size_column")).thenReturn(sizeColumn);
-        when(args.value("time_column")).thenReturn(timeColumn);
-        when(args.value("size_output")).thenReturn(sizeOutput);
-        when(args.value("time_output")).thenReturn(timeOutput);
-        when(args.contains("size_unit")).thenReturn(false);
-        when(args.contains("time_unit")).thenReturn(false);
-        when(args.contains("aggregation")).thenReturn(true);
-        when(args.value("aggregation")).thenReturn(aggregation);
-
+        Arguments args = new TestArguments(params);
         directive.initialize(args);
 
-        // Set up the input data
         List<Row> inputRows = Arrays.asList(
-                new Row("size", "10MB").add("duration", "10s"),
-                new Row("size", "15MB").add("duration", "5s"));
+            new Row("size", "10MB").add("duration", "10s"),
+            new Row("size", "15MB").add("duration", "5s")
+        );
 
-        // Execute the directive
         directive.execute(inputRows, context);
         List<Row> result = directive.finalize(context);
 
-        // Assertions
         assertEquals(1, result.size());
         Row output = result.get(0);
 
-        // Verify that the result is aggregated correctly
         assertEquals(25.0, output.getValue("totalSize"));
         assertEquals(15.0, output.getValue("totalTime"));
     }
 
-
     @Test
     public void testAverageAggregation() throws Exception {
-        // Mock the Arguments object
-        Arguments args = mock(Arguments.class);
+        Map<String, Object> params = new HashMap<>();
+        params.put("size_column", new ColumnName("size"));
+        params.put("time_column", new ColumnName("duration"));
+        params.put("size_output", new ColumnName("totalSize"));
+        params.put("time_output", new ColumnName("totalTime"));
+        params.put("aggregation", new Text("average"));
 
-        // Define tokens with correct column names
-        ColumnName sizeColumn = new ColumnName("size");
-        ColumnName timeColumn = new ColumnName("duration");
-        ColumnName sizeOutput = new ColumnName("totalSize");
-        ColumnName timeOutput = new ColumnName("totalTime");
-        Text aggregation = new Text("average");  // Change to "average" for correct aggregation
-
-        // Mock the values returned by the Arguments
-        when(args.value("size_column")).thenReturn(sizeColumn);
-        when(args.value("time_column")).thenReturn(timeColumn);
-        when(args.value("aggregation")).thenReturn(aggregation);
-        when(args.value("size_output")).thenReturn(sizeOutput);
-        when(args.value("time_output")).thenReturn(timeOutput);
-        when(args.contains("aggregation")).thenReturn(true);
-        when(args.contains("size_unit")).thenReturn(false);
-        when(args.contains("time_unit")).thenReturn(false);
-
-        // Initialize the directive with the mocked arguments
+        Arguments args = new TestArguments(params);
         directive.initialize(args);
 
-        // Sample input with "size" in MB and "duration" in seconds
         List<Row> inputRows = Arrays.asList(
             new Row("size", "8MB").add("duration", "4s"),
             new Row("size", "12MB").add("duration", "2s")
         );
 
-        // Execute directive logic
         directive.execute(inputRows, context);
         List<Row> result = directive.finalize(context);
 
-        // Assert the output
         assertEquals(1, result.size());
         Row output = result.get(0);
 
-        // Assert that the calculated averages are correct
-        assertEquals(10.0, (double) output.getValue("totalSize"), 0.001);  // (8 + 12) / 2 = 10
-        assertEquals(3.0, (double) output.getValue("totalTime"), 0.001);   // (4 + 2) / 2 = 3
+        assertEquals(10.0, (double) output.getValue("totalSize"), 0.001);
+        assertEquals(3.0, (double) output.getValue("totalTime"), 0.001);
     }
 
-    // Mock TransientStore implementation
+    // Custom Arguments stub to avoid mocking
+    private static class TestArguments implements Arguments {
+        private final Map<String, Token> values;
+    
+        public TestArguments(Map<String, Object> rawValues) {
+            this.values = new HashMap<>();
+            for (Map.Entry<String, Object> entry : rawValues.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof Token) {
+                    values.put(entry.getKey(), (Token) value);
+                } else if (value instanceof String) {
+                    values.put(entry.getKey(), new Text((String) value));
+                } else {
+                    throw new IllegalArgumentException("Unsupported token type: " + value.getClass());
+                }
+            }
+        }
+    
+        @Override
+        public boolean contains(String name) {
+            return values.containsKey(name);
+        }
+    
+        @Override
+        public <T extends Token> T value(String name) {
+            return (T) values.get(name);
+        }
+    
+    
+        @Override
+        public int size() {
+            return values.size();
+        }
+    
+        @Override
+        public TokenType type(String name) {
+            Token token = values.get(name);
+            return token != null ? token.type() : null;
+        }
+    
+        @Override
+        public int line() {
+            return 0;
+        }
+    
+        @Override
+        public int column() {
+            return 0;
+        }
+    
+        @Override
+        public String source() {
+            return "TestArguments";
+        }
+    
+        @Override
+        public JsonElement toJson() {
+            return null; // not needed for the test
+        }
+    }
+    
+    // Simple mock of TransientStore
     private static class TransientStoreMock implements TransientStore {
         private final Map<String, Object> store = new HashMap<>();
 
@@ -172,24 +204,25 @@ public class AggregateStatsDirectiveTest {
 
     public class CustomToken extends ColumnName {
         private final String value;
-    
+
         public CustomToken(String value) {
-            super(value); // Pass value to the parent constructor
+            super(value);
             this.value = value;
         }
-    
+
         public String getValue() {
             return value;
         }
-    
+
         @Override
         public TokenType type() {
-            return TokenType.TEXT; // Adjust as needed
+            return TokenType.TEXT;
         }
-    
+
         @Override
         public JsonElement toJson() {
             return new JsonPrimitive(value);
         }
     }
 }
+
